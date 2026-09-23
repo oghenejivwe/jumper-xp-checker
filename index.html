@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jumper XP Checker</title>
+<meta name="description" content="Paste your wallets, see your Jumper XP, level and rank. No wallet connection.">
+<meta name="theme-color" content="#120b1e">
+<meta property="og:title" content="Jumper XP Checker">
+<meta property="og:description" content="Paste your wallets, see your Jumper XP, level and rank. No wallet connection.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jumper XP Checker">
+<meta name="twitter:description" content="Paste your wallets, see your Jumper XP, level and rank. No wallet connection.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 49'%3E%3Cpath fill='%23d35cff' d='M17.4843 13.7886L25.9696 5.30329L23.8483 3.18202C19.6057 -1.06062 15.363 -1.06064 11.1201 3.18174L8.99902 5.30329L17.4843 13.7886Z'/%3E%3Cpath fill='%23b49bda' d='M25.9696 26.5166C25.0316 27.4797 8.99902 43.4871 8.99902 43.4871L11.1203 45.6084C13.2417 47.7298 19.6055 49.8512 23.8482 45.6085L40.8189 28.6379C42.9402 26.5166 42.9402 22.2739 40.8189 20.1526L30.2123 9.54602L21.727 18.0313C21.727 18.0313 24.9089 21.2133 25.9696 22.2739C27.0303 23.3346 26.9075 25.5534 25.9696 26.5166Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Urbanist:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Jumper palette, taken from jumper.xyz */
+  :root {
+    --bg: #120b1e; --card: #1c102d; --field: #09050f; --text: #ffffff; --muted: rgba(255,255,255,.64);
+    --line: rgba(255,255,255,.08); --accent: #653ca2; --accent-2: #b49bda; --pink: #d35cff;
+    --accent-soft: #341e52; --bad: #ff6b4a; --glow: rgba(101,60,162,.45);
+  }
+  :root[data-theme="light"] {
+    --bg: #fcfaff; --card: #ffffff; --field: #f4effc; --text: #120b1e; --muted: rgba(18,11,30,.6);
+    --line: #e7def5; --accent: #653ca2; --accent-2: #653ca2; --pink: #b43ee0;
+    --accent-soft: #efe7fb; --bad: #b82500; --glow: rgba(101,60,162,.18);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--text); font: 15px/1.5 Inter, system-ui, sans-serif;
+    background: radial-gradient(900px 480px at 50% -120px, var(--glow), transparent 70%), var(--bg);
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 36px; }
+  .brand svg { height: 30px; width: auto; }
+  .brand .main-color { fill: var(--accent-2); }
+  .brand .sub-color { fill: var(--pink); }
+  .tag {
+    font: 700 13px Urbanist, sans-serif; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--accent-2); background: var(--accent-soft); border-radius: 999px; padding: 4px 10px;
+  }
+  .theme { margin-left: auto; padding: 7px 12px; font-size: 14px; }
+  h1 { font: 800 clamp(30px, 6vw, 44px)/1.1 Urbanist, sans-serif; margin: 0 0 10px; letter-spacing: -0.02em; }
+  h1 span { background: linear-gradient(90deg, var(--accent-2), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--muted); margin: 0 0 28px; font-size: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+  textarea {
+    width: 100%; min-height: 140px; resize: vertical; padding: 14px; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--field); color: var(--text);
+    font: 13px/1.6 "JetBrains Mono", monospace;
+  }
+  textarea::placeholder { color: var(--muted); opacity: .7; }
+  textarea:focus { outline: 2px solid var(--accent-2); outline-offset: -1px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .hint { color: var(--muted); font-size: 13px; flex: 1; min-width: 180px; }
+  button {
+    font: 700 15px Urbanist, sans-serif; border-radius: 999px; padding: 11px 20px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--text);
+  }
+  button:hover { background: var(--accent-soft); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fcfaff; padding: 11px 26px; }
+  button.primary:hover { filter: brightness(1.15); background: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 12px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+  .stat b { display: block; font: 800 26px Urbanist, sans-serif; font-variant-numeric: tabular-nums; }
+  .stat:first-child b { color: var(--accent-2); }
+  .stat span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 11px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+  td.num, th.num { text-align: right; }
+  .addr { font-family: "JetBrains Mono", monospace; font-size: 13px; }
+  .xp { font-weight: 700; color: var(--accent-2); }
+  .err { color: var(--bad); font-size: 13px; }
+  .muted { color: var(--muted); }
+  tr.main { cursor: pointer; }
+  tr.main:hover td { background: var(--accent-soft); }
+  tr.detail td { background: var(--field); padding: 10px 12px 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+  .chip b { color: var(--pink); }
+  .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--accent-2); border-radius: 50%; animation: s .8s linear infinite; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  footer { margin-top: 28px; color: var(--muted); font-size: 12px; }
+  footer a { color: var(--accent-2); }
+  .tablewrap { overflow-x: auto; }
+  @media (max-width: 560px) {
+    .stat b { font-size: 18px; }
+    .stat { padding: 10px 12px; }
+    .hide-sm { display: none; }
+    .brand svg { height: 24px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <svg viewBox="0 0 236 49" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Jumper"><path d="M17.4843 13.7886L25.9696 5.30329L23.8483 3.18202C19.6057 -1.06062 15.363 -1.06064 11.1201 3.18174L8.99902 5.30329L17.4843 13.7886Z" class="sub-color"/><path d="M25.9696 26.5166C25.0316 27.4797 8.99902 43.4871 8.99902 43.4871L11.1203 45.6084C13.2417 47.7298 19.6055 49.8512 23.8482 45.6085L40.8189 28.6379C42.9402 26.5166 42.9402 22.2739 40.8189 20.1526L30.2123 9.54602L21.727 18.0313C21.727 18.0313 24.9089 21.2133 25.9696 22.2739C27.0303 23.3346 26.9075 25.5534 25.9696 26.5166Z" class="main-color"/><path d="M82.0273 24C82.0273 31.9998 76.0001 36 68 36C60.0001 36 58 31 58 31L63 28C63 28 64.3051 29.9004 68 29.9004C72.0001 29.9004 76.0001 27.9999 76 24V12H82.0273V24Z" class="main-color"/><path d="M92.5449 24.2773C92.5449 28.6107 94.7273 30 98 30C101.273 30 104 28.3333 104 24V12H110V24C110 32 106 36 98 36C90 36 86 32.944 86 24.2773V12H92.5449V24.2773Z" class="main-color"/><path d="M119.168 12C121.059 12.0003 122.8 13.0343 123.705 14.6953L130 28L136.545 14.6465C137.433 13.0157 139.143 12 141 12C143.779 12 146.035 12 146.072 12V36H140.072V22L134.109 33.8047C133.429 35.1512 132.048 36 130.539 36H129.473C127.958 36 126.572 35.1441 125.895 33.7891L120 22V36H114V12H119.168Z" class="main-color"/><path fill-rule="evenodd" clip-rule="evenodd" d="M166 12C172 12 176 16 176 21C176 26 172 30 166 30H156V36H150C150 36 150 22 150 18C150 14 151.796 12 156 12H166ZM156 24H166C169 24 170 22.4645 170 21C170 19.5355 169 18 166 18H156V24Z" class="main-color"/><path d="M203 18H185V22H201V26H185V30H203V36H185C181 36 179 34 179 30V18C179 13.8003 181.802 12.0003 186.006 12H203V18Z" class="main-color"/><path fill-rule="evenodd" clip-rule="evenodd" d="M223 12C229 12 233 16 233 21C233 28 227.098 30.1174 227 30L232 36H224L220 30H213V36H207C207 36 207 22 207 18C207 14 208.796 12 213 12H223ZM213 24H223C226 24 227 22.4645 227 21C227 19.5355 226 18 223 18H213V24Z" class="main-color"/></svg>
+    <span class="tag">XP Checker</span>
+    <button class="theme" id="theme" aria-label="Toggle light or dark mode">☀︎</button>
+  </div>
+
+  <h1>Check your <span>Jumper XP</span></h1>
+  <p class="sub">Paste one wallet or a hundred. See XP, level and leaderboard rank. You never connect a wallet or sign anything.</p>
+
+  <div class="card">
+    <textarea id="input" spellcheck="false" placeholder="0x1234...abcd&#10;0x5678...ef01&#10;One per line, or separated by commas/spaces"></textarea>
+    <div class="row">
+      <span class="hint" id="hint">Up to 100 EVM wallets at a time.</span>
+      <button id="clear">Clear</button>
+      <button id="check" class="primary">Check XP</button>
+    </div>
+  </div>
+
+  <section id="results" hidden>
+    <div class="stats">
+      <div class="stat"><span>Total XP</span><b id="total">0</b></div>
+      <div class="stat"><span>Wallets</span><b id="count">0</b></div>
+      <div class="stat"><span>Best rank</span><b id="best">–</b></div>
+    </div>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Wallet</th><th class="num">XP</th><th class="num">Level</th><th class="num hide-sm">Rank</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="row"><span class="hint">Click a row for the XP breakdown.</span><button id="csv">Copy as CSV</button></div>
+    </div>
+  </section>
+
+  <footer>Unofficial community tool, not affiliated with or endorsed by Jumper or LI.FI. Data comes from Jumper's public leaderboard API and may lag the site by a few minutes. Official leaderboard: <a href="https://jumper.xyz/leaderboard" target="_blank" rel="noopener">jumper.xyz/leaderboard</a></footer>
+</main>
+
+<script>
+const MAX = 100, CONCURRENCY = 3;
+const $ = (id) => document.getElementById(id);
+const input = $('input');
+const fmt = (n) => Number(n).toLocaleString('en-US');
+const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let results = [];
+
+try { input.value = localStorage.getItem('wallets') || ''; } catch {}
+
+const setTheme = (t) => { document.documentElement.dataset.theme = t; $('theme').textContent = t === 'light' ? '☾' : '☀︎'; };
+try { setTheme(localStorage.getItem('theme') || 'dark'); } catch { setTheme('dark'); }
+$('theme').addEventListener('click', () => {
+  const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  setTheme(t);
+  try { localStorage.setItem('theme', t); } catch {}
+});
+
+function parse(text) {
+  const seen = new Set(), valid = [], invalid = [];
+  for (const tok of text.split(/[\s,;]+/).filter(Boolean)) {
+    if (/^0x[0-9a-fA-F]{40}$/.test(tok)) {
+      const k = tok.toLowerCase();
+      if (!seen.has(k)) { seen.add(k); valid.push(tok); }
+    } else invalid.push(tok);
+  }
+  return { valid, invalid };
+}
+
+async function fetchOne(address, attempt = 0) {
+  const res = await fetch('/api/check?address=' + encodeURIComponent(address));
+  const body = await res.json().catch(() => ({ error: 'Bad response' }));
+  if (res.status === 429 && attempt < 3) {
+    await new Promise((r) => setTimeout(r, 20000));
+    return fetchOne(address, attempt + 1);
+  }
+  if (!res.ok) throw new Error(body.error || 'Request failed');
+  return body;
+}
+
+function render() {
+  const ok = results.filter((r) => r.data);
+  $('total').textContent = fmt(ok.reduce((s, r) => s + r.data.xp, 0));
+  $('count').textContent = results.length;
+  const ranks = ok.map((r) => r.data.rank).filter(Boolean);
+  $('best').textContent = ranks.length ? '#' + fmt(Math.min(...ranks)) : '–';
+
+  $('rows').innerHTML = results.map((r, i) => {
+    const a = `<td class="addr" title="${esc(r.address)}">${esc(short(r.address))}</td>`;
+    if (r.pending) return `<tr>${a}<td class="num" colspan="3"><span class="spin"></span></td></tr>`;
+    if (r.error) return `<tr>${a}<td class="num err" colspan="3">${esc(r.error)}</td></tr>`;
+    const d = r.data;
+    const main = `<tr class="main" data-i="${i}">${a}<td class="num xp">${fmt(d.xp)}</td><td class="num">${d.level}</td><td class="num hide-sm">${d.rank ? '#' + fmt(d.rank) : '<span class="muted">unranked</span>'}</td></tr>`;
+    if (!r.open) return main;
+    const chips = d.rewards.length
+      ? d.rewards.map((x) => `<span class="chip">${esc(x.name)} <b>+${fmt(x.points)}</b>${x.ongoing ? ' <span class="muted">(ongoing)</span>' : ''}</span>`).join('')
+      : '<span class="muted">No XP entries for this wallet.</span>';
+    return main + `<tr class="detail"><td colspan="4"><div class="chips">${chips}</div></td></tr>`;
+  }).join('');
+}
+
+$('rows').addEventListener('click', (e) => {
+  const tr = e.target.closest('tr.main');
+  if (!tr) return;
+  const r = results[tr.dataset.i];
+  r.open = !r.open;
+  render();
+});
+
+$('check').addEventListener('click', async () => {
+  const { valid, invalid } = parse(input.value);
+  try { localStorage.setItem('wallets', input.value); } catch {}
+  if (!valid.length) { $('hint').textContent = 'No valid EVM addresses found (0x followed by 40 hex characters).'; return; }
+  const list = valid.slice(0, MAX);
+  $('hint').textContent = [
+    `${list.length} wallet${list.length > 1 ? 's' : ''}`,
+    invalid.length ? `${invalid.length} invalid skipped` : '',
+    valid.length > MAX ? `only the first ${MAX} checked` : '',
+  ].filter(Boolean).join(' · ');
+
+  results = list.map((address) => ({ address, pending: true }));
+  $('results').hidden = false;
+  $('check').disabled = true;
+  render();
+
+  let next = 0;
+  const worker = async () => {
+    while (next < results.length) {
+      const r = results[next++];
+      try { r.data = await fetchOne(r.address); } catch (err) { r.error = err.message; }
+      r.pending = false;
+      render();
+    }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  results.sort((a, b) => (b.data?.xp ?? -1) - (a.data?.xp ?? -1));
+  render();
+  $('check').disabled = false;
+});
+
+$('clear').addEventListener('click', () => {
+  input.value = ''; results = []; $('results').hidden = true;
+  $('hint').textContent = 'Up to 100 EVM wallets at a time.';
+  try { localStorage.removeItem('wallets'); } catch {}
+});
+
+$('csv').addEventListener('click', async () => {
+  const lines = ['wallet,xp,level,rank', ...results.map((r) =>
+    r.data ? `${r.address},${r.data.xp},${r.data.level},${r.data.rank ?? ''}` : `${r.address},,,`)];
+  try { await navigator.clipboard.writeText(lines.join('\n')); $('csv').textContent = 'Copied'; }
+  catch { $('csv').textContent = 'Copy failed'; }
+  setTimeout(() => ($('csv').textContent = 'Copy as CSV'), 1500);
+});
+</script>
+</body>
+</html>
