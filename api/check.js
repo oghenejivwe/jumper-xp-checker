@@ -1,4 +1,4 @@
-// GET /api/check?address=0x...  -> { address, xp, level, rank, rewards[] }
+// GET /api/check?address=<EVM 0x... or Solana base58>  -> { address, xp, level, rank, rewards[] }
 // Jumper's API rejects browser calls from other origins (403 "Not allowed by CORS"),
 // so the page calls this function and the function calls Jumper server-side.
 
@@ -10,6 +10,17 @@ const HEADERS = {
   Accept: 'application/json',
 };
 const EVM = /^0x[0-9a-fA-F]{40}$/;
+const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+// A Solana address is a base58-encoded 32-byte public key.
+function isSolana(address) {
+  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)) return false;
+  let n = 0n;
+  for (const c of address) n = n * 58n + BigInt(BASE58.indexOf(c));
+  const zeroBytes = address.match(/^1*/)[0].length;
+  const bytes = n === 0n ? 0 : Math.ceil(n.toString(16).length / 2);
+  return zeroBytes + bytes === 32;
+}
 
 async function jumper(path) {
   const res = await fetch(JUMPER + path, { headers: HEADERS, signal: AbortSignal.timeout(8000) });
@@ -31,7 +42,7 @@ function json(body, status, cache) {
 
 export async function GET(request) {
   const address = new URL(request.url).searchParams.get('address')?.trim() ?? '';
-  if (!EVM.test(address)) return json({ error: 'Not a valid EVM address' }, 400, false);
+  if (!EVM.test(address) && !isSolana(address)) return json({ error: 'Not a valid EVM or Solana address' }, 400, false);
 
   try {
     const [rewards, board] = await Promise.all([
